@@ -103,31 +103,25 @@ class DatabaseService {
   }
 
   public async disconnect(): Promise<void> {
-    const promises = [];
-    
     if (this._prisma && this._isConnected) {
-      promises.push(
-        this._prisma.$disconnect().then(() => {
-          console.log('💔 Database disconnected');
-          this._isConnected = false;
-        }).catch((error) => {
-          console.warn('⚠️  Database disconnection error:', error);
-        })
-      );
+      try {
+        await this._prisma.$disconnect();
+        console.log('💔 Database disconnected');
+        this._isConnected = false;
+      } catch (error) {
+        console.warn('⚠️  Database disconnection error:', error);
+      }
     }
     
     if (this._redis && this._redisConnected) {
-      promises.push(
-        this._redis.disconnect().then(() => {
-          console.log('💔 Redis disconnected');
-          this._redisConnected = false;
-        }).catch((error) => {
-          console.warn('⚠️  Redis disconnection error:', error);
-        })
-      );
+      try {
+        await this._redis.disconnect();
+        console.log('💔 Redis disconnected');
+        this._redisConnected = false;
+      } catch (error) {
+        console.warn('⚠️  Redis disconnection error:', error);
+      }
     }
-
-    await Promise.allSettled(promises);
   }
 
   public async healthCheck(): Promise<boolean> {
