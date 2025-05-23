@@ -1,0 +1,10 @@
+{"address":"::","code":"EADDRINUSE","errno":-48,"level":"\u001b[31merror\u001b[39m","message":"\u001b[31mServer error: listen EADDRINUSE: address already in use :::5000\u001b[39m","port":5000,"stack":"Error: listen EADDRINUSE: address already in use :::5000\n    at Server.setupListenHandle [as _listen2] (node:net:1937:16)\n    at listenInCluster (node:net:1994:12)\n    at Server.listen (node:net:2099:7)\n    at Function.listen (/Users/frederic/agency-client-reviews/server/node_modules/express/lib/application.js:635:24)\n    at startServer (/Users/frederic/agency-client-reviews/server/src/index.ts:132:24)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)","syscall":"listen","timestamp":"2025-05-23 23:16:39"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m🚀 ClientScore API server running on port 3001\u001b[39m","timestamp":"2025-05-23 23:19:43"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m📚 Environment: development\u001b[39m","timestamp":"2025-05-23 23:19:43"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m🗄️  Database: Connected\u001b[39m","timestamp":"2025-05-23 23:19:43"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m🔴 Redis: Connected\u001b[39m","timestamp":"2025-05-23 23:19:43"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32mReceived SIGINT. Starting graceful shutdown...\u001b[39m","timestamp":"2025-05-23 23:20:44"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m🚀 ClientScore API server running on port 3001\u001b[39m","timestamp":"2025-05-23 23:20:58"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m📚 Environment: development\u001b[39m","timestamp":"2025-05-23 23:20:58"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m🗄️  Database: Connected\u001b[39m","timestamp":"2025-05-23 23:20:58"}
+{"level":"\u001b[32minfo\u001b[39m","message":"\u001b[32m🔴 Redis: Connected\u001b[39m","timestamp":"2025-05-23 23:20:58"}

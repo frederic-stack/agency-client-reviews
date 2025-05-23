@@ -131,7 +131,7 @@ export const config: Config = {
   CORS_ORIGIN: getEnvVarOptional('CORS_ORIGIN', 'http://localhost:3000'),
 
   // Server
-  PORT: getEnvNumber('PORT', 5000),
+  PORT: getEnvNumber('PORT', 3001),
   NODE_ENV: getEnvVarOptional('NODE_ENV', 'development'),
 
   // File Upload
@@ -147,7 +147,7 @@ export const config: Config = {
 
   // URLs
   CLIENT_URL: getEnvVarOptional('CLIENT_URL', 'http://localhost:3000'),
-  SERVER_URL: getEnvVarOptional('SERVER_URL', 'http://localhost:5000'),
+  SERVER_URL: getEnvVarOptional('SERVER_URL', 'http://localhost:3001'),
 
   // Verification
   EMAIL_VERIFICATION_EXPIRES_IN: getEnvVarOptional('EMAIL_VERIFICATION_EXPIRES_IN', '24h'),
