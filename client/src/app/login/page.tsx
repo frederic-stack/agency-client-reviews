@@ -32,7 +32,7 @@ export default function LoginPage() {
       } else {
         setError('Invalid email or password');
       }
-    } catch (error) {
+    } catch (_error) {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ export default function LoginPage() {
                 </Link>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="text-gray-500 text-sm">Don't have an account?</span>
+                <span className="text-gray-500 text-sm">Don&apos;t have an account?</span>
                 <Link 
                   href="/register" 
                   className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"

@@ -1,14 +1,12 @@
 import Link from 'next/link';
 import { 
   ShieldCheckIcon, 
-  UserGroupIcon, 
   EyeSlashIcon,
   StarIcon,
   ChartBarIcon,
   LockClosedIcon,
   MagnifyingGlassIcon,
   BellIcon,
-  CogIcon,
   DocumentCheckIcon
 } from '@heroicons/react/24/outline';
 

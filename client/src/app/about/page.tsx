@@ -109,7 +109,7 @@ export default function AboutPage() {
               <span className="block text-indigo-600">Honest Client Intelligence</span>
             </h1>
             <p className="mt-6 max-w-3xl mx-auto text-xl text-gray-500">
-              We're building the world's most trusted platform for agency-client insights, 
+              We&apos;re building the world&apos;s most trusted platform for agency-client insights, 
               helping creative professionals make informed business decisions through anonymous, verified reviews.
             </p>
           </div>
@@ -127,7 +127,7 @@ export default function AboutPage() {
             <p className="mt-4 max-w-4xl text-xl text-gray-500 lg:mx-auto">
               For too long, agencies have operated in the dark when it comes to client relationships. 
               Horror stories are shared in whispers at industry events, but actionable intelligence remains elusive. 
-              We're changing that by creating a secure, anonymous platform where agencies can share authentic 
+              We&apos;re changing that by creating a secure, anonymous platform where agencies can share authentic 
               experiences and make data-driven client decisions.
             </p>
           </div>
@@ -152,7 +152,7 @@ export default function AboutPage() {
                 with the same client, but there was no way to share this crucial information.
               </p>
               <p className="mt-4 text-lg text-gray-600">
-                That's when they decided to build ClientScore—a platform where agencies could 
+                That&apos;s when they decided to build ClientScore—a platform where agencies could 
                 anonymously share their real experiences, helping the entire creative community 
                 make better business decisions.
               </p>
@@ -162,7 +162,7 @@ export default function AboutPage() {
                 <GlobeAltIcon className="mx-auto h-12 w-12 text-indigo-600" />
                 <h3 className="mt-4 text-xl font-semibold text-gray-900">Global Impact</h3>
                 <p className="mt-2 text-gray-600">
-                  Since our launch, we've helped agencies avoid $50M+ in problematic client relationships 
+                  Since our launch, we&apos;ve helped agencies avoid $50M+ in problematic client relationships 
                   and enabled thousands of successful partnerships through better client intelligence.
                 </p>
               </div>
@@ -249,9 +249,9 @@ export default function AboutPage() {
             <AcademicCapIcon className="mx-auto h-12 w-12 text-indigo-600" />
             <h2 className="mt-4 text-3xl font-extrabold text-gray-900">Join Our Mission</h2>
             <p className="mt-4 text-xl text-gray-600 max-w-3xl mx-auto">
-              We're always looking for talented individuals who share our passion for empowering 
-              the creative community. Whether you're a developer, designer, marketer, or industry expert, 
-              we'd love to hear from you.
+              We&apos;re always looking for talented individuals who share our passion for empowering 
+                              the creative community. Whether you&apos;re a developer, designer, marketer, or industry expert, 
+                we&apos;d love to hear from you.
             </p>
             <div className="mt-8 flex justify-center space-x-4">
               <Link 

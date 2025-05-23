@@ -113,7 +113,7 @@ export interface Notification {
   title: string;
   message: string;
   isRead: boolean;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   createdAt: string;
 }
 
@@ -145,7 +145,7 @@ export interface AuthResponse {
 }
 
 // API Response Types
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   message?: string;
@@ -202,7 +202,7 @@ export interface ActivityItem {
   type: 'review' | 'user' | 'client' | 'report';
   description: string;
   timestamp: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 // Moderation Types
@@ -277,7 +277,7 @@ export type Role = 'user' | 'admin' | 'moderator';
 
 export interface ErrorState {
   message: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 export interface LoadingState {

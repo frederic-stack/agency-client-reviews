@@ -139,7 +139,7 @@ export default function PricingPage() {
               <span className="block text-indigo-600">Pricing</span>
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
-              Choose the plan that fits your agency's needs. Start free and upgrade as you grow.
+              Choose the plan that fits your agency&apos;s needs. Start free and upgrade as you grow.
             </p>
           </div>
         </div>
@@ -205,7 +205,7 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-extrabold text-gray-900">Compare Plans</h2>
-            <p className="mt-4 text-xl text-gray-600">See what's included in each plan</p>
+            <p className="mt-4 text-xl text-gray-600">See what&apos;s included in each plan</p>
           </div>
 
           <div className="overflow-x-auto">

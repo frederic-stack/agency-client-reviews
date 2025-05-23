@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { 
   ShieldCheckIcon, 
-  UserGroupIcon, 
   EyeSlashIcon,
   StarIcon,
   ChartBarIcon,
