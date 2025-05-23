@@ -6,7 +6,7 @@ import {
   StarIcon,
   ChartBarIcon,
   LockClosedIcon,
-  SearchIcon,
+  MagnifyingGlassIcon,
   BellIcon,
   CogIcon,
   DocumentCheckIcon
@@ -35,7 +35,7 @@ export default function FeaturesPage() {
     {
       name: 'Advanced Search & Filtering',
       description: 'Powerful search tools help you find exactly the client information you need.',
-      icon: SearchIcon,
+      icon: MagnifyingGlassIcon,
       highlights: ['Industry-specific filters', 'Rating-based searches', 'Geographic location filters', 'Project size categories']
     },
     {
