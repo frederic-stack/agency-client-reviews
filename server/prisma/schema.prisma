@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  isVerified       Boolean   @default(false)
+  verificationToken String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  
+  // Company Information
+  companyName      String
+  websiteUrl       String
+  industry         String
+  country          String
+  linkedinProfile  String?
+  
+  // Account Status
+  isActive         Boolean   @default(true)
+  isSuspended      Boolean   @default(false)
+  suspensionReason String?
+  
+  // Membership
+  membershipTier   MembershipTier @default(FREE)
+  membershipExpiry DateTime?
+  
+  // Timestamps
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastLoginAt      DateTime?
+  
+  // Relations
+  reviews          Review[]
+  bookmarks        Bookmark[]
+  notifications    Notification[]
+  moderationReports ModerationReport[] @relation("ReportedBy")
+  moderationActions ModerationReport[] @relation("ModeratedBy")
+  
+  @@map("users")
+}
+
+model Client {
+  id              String   @id @default(cuid())
+  name            String
+  website         String?
+  industry        String
+  country         String
+  description     String?
+  
+  // Aggregated Ratings
+  averageRating   Float    @default(0)
+  totalReviews    Int      @default(0)
+  
+  // Rating Breakdown
+  paymentRating   Float    @default(0)
+  communicationRating Float @default(0)
+  scopeRating     Float    @default(0)
+  creativeFreedomRating Float @default(0)
+  timelinessRating Float   @default(0)
+  
+  // Status Tracking
+  ongoingProjects Int      @default(0)
+  completedProjects Int    @default(0)
+  canceledProjects Int     @default(0)
+  
+  // Flags and Warnings
+  flagCount       Int      @default(0)
+  isWatched       Boolean  @default(false)
+  watchReason     String?
+  
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  reviews         Review[]
+  bookmarks       Bookmark[]
+  
+  @@map("clients")
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  
+  // Anonymous identifier (UUID)
+  anonymousId     String   @unique @default(uuid())
+  
+  // Review Content
+  title           String?
+  content         String
+  projectType     String
+  budgetRange     BudgetRange
+  
+  // Ratings (1-5 scale)
+  overallRating   Int
+  paymentRating   Int
+  communicationRating Int
+  scopeRating     Int
+  creativeFreedomRating Int
+  timelinessRating Int
+  
+  // Project Status
+  projectStatus   ProjectStatus
+  
+  // Visibility and Moderation
+  isPublic        Boolean  @default(true)
+  isModerated     Boolean  @default(false)
+  moderationStatus ModerationStatus @default(PENDING)
+  moderationNotes String?
+  
+  // Timestamps
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  moderationReports ModerationReport[]
+  
+  @@map("reviews")
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  clientId  String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, clientId])
+  @@map("bookmarks")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+model ModerationReport {
+  id              String           @id @default(cuid())
+  reportedBy      String
+  moderatedBy     String?
+  reviewId        String
+  reason          ReportReason
+  description     String?
+  status          ModerationStatus @default(PENDING)
+  action          ModerationAction?
+  actionReason    String?
+  createdAt       DateTime         @default(now())
+  resolvedAt      DateTime?
+  
+  reporter        User             @relation("ReportedBy", fields: [reportedBy], references: [id])
+  moderator       User?            @relation("ModeratedBy", fields: [moderatedBy], references: [id])
+  review          Review           @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  
+  @@map("moderation_reports")
+}
+
+model AuditLog {
+  id        String    @id @default(cuid())
+  action    String
+  entityType String
+  entityId  String
+  userId    String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime  @default(now())
+  
+  @@map("audit_logs")
+}
+
+// Enums
+enum MembershipTier {
+  FREE
+  PRO
+}
+
+enum BudgetRange {
+  UNDER_5K
+  FIVE_TO_15K
+  FIFTEEN_TO_50K
+  FIFTY_TO_100K
+  OVER_100K
+}
+
+enum ProjectStatus {
+  ONGOING
+  COMPLETED
+  CANCELED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
+}
+
+enum NotificationType {
+  REVIEW_FLAGGED
+  CLIENT_WATCHED
+  SYSTEM_ALERT
+  MEMBERSHIP_EXPIRY
+}
+
+enum ReportReason {
+  INAPPROPRIATE_CONTENT
+  FALSE_INFORMATION
+  SPAM
+  DEFAMATORY
+  VIOLATION_OF_TERMS
+  OTHER
+}
+
+enum ModerationAction {
+  APPROVED
+  CONTENT_EDITED
+  REVIEW_HIDDEN
+  USER_WARNING
+  USER_SUSPENDED
+  NO_ACTION
+} 
