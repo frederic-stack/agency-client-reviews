@@ -8,6 +8,7 @@ import {
   LockClosedIcon
 } from '@heroicons/react/24/outline';
 
+// Force fresh Vercel deployment - All pages working locally
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
