@@ -2,5 +2,11 @@
   "version": 2,
   "buildCommand": "cd client && npm run build",
   "outputDirectory": "client/.next",
-  "installCommand": "cd client && npm install"
+  "installCommand": "cd client && npm install",
+  "framework": "nextjs",
+  "functions": {
+    "client/src/app/**": {
+      "runtime": "nodejs18.x"
+    }
+  }
 } 
