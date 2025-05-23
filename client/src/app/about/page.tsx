@@ -147,7 +147,7 @@ export default function AboutPage() {
               </p>
               <p className="mt-4 text-lg text-gray-600">
                 Six months later, after countless scope changes, payment delays, and communication 
-                breakdowns, they realized this "dream client" was actually a nightmare that nearly 
+                breakdowns, they realized this &quot;dream client&quot; was actually a nightmare that nearly 
                 bankrupted their agency. The worst part? Other agencies had similar experiences 
                 with the same client, but there was no way to share this crucial information.
               </p>

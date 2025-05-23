@@ -134,7 +134,7 @@ export default function RegisterPage() {
         const data = await response.json();
         setError(data.message || 'Registration failed. Please try again.');
       }
-    } catch (_error) {
+    } catch {
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
