@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable standalone output for Railway deployment
-  output: 'standalone',
-  
   // Optimize images for production
   images: {
     unoptimized: true,
