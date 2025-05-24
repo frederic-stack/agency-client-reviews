@@ -67,8 +67,9 @@ app.use((error, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 ClientScore API running on port ${PORT}`);
   console.log(`✅ Environment: ${process.env.NODE_ENV || 'production'}`);
+  console.log(`🌐 Binding to: 0.0.0.0:${PORT}`);
   console.log(`🌐 Test: https://back-end-github-production.up.railway.app/api/health`);
 }); 
