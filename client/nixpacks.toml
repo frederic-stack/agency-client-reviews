@@ -1,6 +1,8 @@
 [variables]
 NODE_ENV = "production"
 NPM_CONFIG_PRODUCTION = "false"
+NEXT_DISABLE_REACT_COMPILER = "true"
+TURBO_DISABLE_TELEMETRY = "1"
 
 [phases.setup]
 nixPkgs = ["nodejs_18", "npm-9_x"]
@@ -9,7 +11,7 @@ nixPkgs = ["nodejs_18", "npm-9_x"]
 cmd = "npm ci"
 
 [phases.build]
-cmd = "npm run build"
+cmd = "NODE_ENV=production npm run build"
 
 [start]
 cmd = "npm start" 

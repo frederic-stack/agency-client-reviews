@@ -18,10 +18,23 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_CLIENT_URL: process.env.NEXT_PUBLIC_CLIENT_URL,
   },
   
+  // Output configuration for deployment
+  output: 'standalone',
+  
   // Explicitly disable experimental features that cause issues
   experimental: {
-    // Explicitly disable React Compiler
+    // Completely disable React Compiler
     reactCompiler: false,
+  },
+  
+  // TypeScript configuration
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  
+  // ESLint configuration
+  eslint: {
+    ignoreDuringBuilds: false,
   },
 };
 
