@@ -171,6 +171,27 @@ NEXT_PUBLIC_GOOGLE_ANALYTICS_ID="your-ga-id"
 
 ## 🚀 Deployment
 
+### Railway Deployment (Recommended)
+
+Railway provides the easiest deployment experience for full-stack applications:
+
+```bash
+# Generate secure secrets first
+node scripts/generate-secrets.js
+
+# Follow the Railway deployment guide
+# See RAILWAY_DEPLOYMENT.md for complete instructions
+```
+
+**Quick Railway Setup:**
+1. Connect GitHub repository to Railway
+2. Add PostgreSQL and Redis services
+3. Deploy backend with root directory: `server`
+4. Deploy frontend with root directory: `client`
+5. Configure environment variables from template
+
+📖 **[Complete Railway Guide](RAILWAY_DEPLOYMENT.md)**
+
 ### Docker Deployment
 ```bash
 # Production build

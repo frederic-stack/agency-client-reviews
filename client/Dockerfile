@@ -59,13 +59,13 @@ USER nextjs
 # Expose port
 EXPOSE 3000
 
-# Set hostname
+# Set hostname and port (Railway provides PORT env variable)
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3000/api/health || exit 1
+    CMD curl -f http://localhost:${PORT:-3000} || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
