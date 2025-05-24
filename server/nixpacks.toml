@@ -11,4 +11,4 @@ cmds = ["npm ci"]
 cmds = ["npx prisma generate"]
 
 [start]
-cmd = "node index-minimal.js" 
+cmd = "node index.js" 
