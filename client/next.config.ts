@@ -21,11 +21,11 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_CLIENT_URL: process.env.NEXT_PUBLIC_CLIENT_URL,
   },
   
-  // Experimental features
-  experimental: {
-    // Enable React Compiler for better performance
-    reactCompiler: true,
-  },
+  // Experimental features (commented out until babel plugin is installed)
+  // experimental: {
+  //   // Enable React Compiler for better performance
+  //   reactCompiler: true,
+  // },
 };
 
 export default nextConfig;
