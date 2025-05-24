@@ -1,7 +1,15 @@
-[build]
-# Disable Nixpacks - use Dockerfile instead
-cmd = ""
-
 [variables]
-# Force Railway to use Docker
-RAILWAY_USE_DOCKER = "true" 
+NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "false"
+
+[phases.setup]
+nixPkgs = ["nodejs_18", "npm-9_x"]
+
+[phases.install]
+cmd = "npm ci"
+
+[phases.build]
+cmd = "npm run build"
+
+[start]
+cmd = "npm start" 
