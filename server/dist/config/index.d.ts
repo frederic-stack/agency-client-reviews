@@ -1,0 +1,41 @@
+interface Config {
+    DATABASE_URL: string;
+    REDIS_URL: string;
+    JWT_SECRET: string;
+    JWT_REFRESH_SECRET: string;
+    JWT_EXPIRES_IN: string;
+    JWT_REFRESH_EXPIRES_IN: string;
+    SESSION_SECRET: string;
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
+    LINKEDIN_CLIENT_ID: string;
+    LINKEDIN_CLIENT_SECRET: string;
+    SMTP_HOST: string;
+    SMTP_PORT: number;
+    SMTP_USER: string;
+    SMTP_PASS: string;
+    FROM_EMAIL: string;
+    AKISMET_API_KEY: string;
+    AKISMET_BLOG_URL: string;
+    RATE_LIMIT_WINDOW_MS: number;
+    RATE_LIMIT_MAX_REQUESTS: number;
+    BCRYPT_ROUNDS: number;
+    CORS_ORIGIN: string;
+    PORT: number;
+    NODE_ENV: string;
+    MAX_FILE_SIZE: string;
+    UPLOAD_PATH: string;
+    LOG_LEVEL: string;
+    LOG_FILE: string;
+    GOOGLE_ANALYTICS_ID: string;
+    CLIENT_URL: string;
+    SERVER_URL: string;
+    EMAIL_VERIFICATION_EXPIRES_IN: string;
+    PASSWORD_RESET_EXPIRES_IN: string;
+    AUTO_MODERATE_THRESHOLD: number;
+    REVIEW_MIN_LENGTH: number;
+    REVIEW_MAX_LENGTH: number;
+}
+export declare const config: Config;
+export default config;
+//# sourceMappingURL=index.d.ts.map
