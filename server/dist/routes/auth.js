@@ -8,14 +8,11 @@ const express_validator_1 = require("express-validator");
 const errorHandler_1 = require("../middleware/errorHandler");
 const auth_1 = require("../middleware/auth");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const client_1 = require("@prisma/client");
 const config_1 = require("../config");
+const jwt_1 = require("../utils/jwt");
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
-const generateToken = (userId) => {
-    return jsonwebtoken_1.default.sign({ userId }, config_1.config.JWT_SECRET);
-};
 const registerValidation = [
     (0, express_validator_1.body)('email').isEmail().normalizeEmail(),
     (0, express_validator_1.body)('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
@@ -28,7 +25,7 @@ const loginValidation = [
 router.post('/register', registerValidation, (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
             success: false,
             error: {
                 message: 'Validation errors',
@@ -36,6 +33,7 @@ router.post('/register', registerValidation, (0, errorHandler_1.asyncHandler)(as
                 statusCode: 400,
             },
         });
+        return;
     }
     const { email, password, companyName, websiteUrl = '', industry = 'Other', country = 'Unknown', linkedinProfile = null } = req.body;
     try {
@@ -43,13 +41,14 @@ router.post('/register', registerValidation, (0, errorHandler_1.asyncHandler)(as
             where: { email },
         });
         if (existingUser) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 error: {
                     message: 'User with this email already exists',
                     statusCode: 400,
                 },
             });
+            return;
         }
         const passwordHash = await bcryptjs_1.default.hash(password, config_1.config.BCRYPT_ROUNDS);
         const user = await prisma.user.create({
@@ -63,7 +62,7 @@ router.post('/register', registerValidation, (0, errorHandler_1.asyncHandler)(as
                 linkedinProfile,
             },
         });
-        const token = generateToken(user.id);
+        const token = (0, jwt_1.generateToken)(user.id);
         res.cookie('token', token, {
             httpOnly: true,
             secure: config_1.config.NODE_ENV === 'production',
@@ -94,7 +93,7 @@ router.post('/register', registerValidation, (0, errorHandler_1.asyncHandler)(as
 router.post('/login', loginValidation, (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
             success: false,
             error: {
                 message: 'Validation errors',
@@ -102,6 +101,7 @@ router.post('/login', loginValidation, (0, errorHandler_1.asyncHandler)(async (r
                 statusCode: 400,
             },
         });
+        return;
     }
     const { email, password } = req.body;
     try {
@@ -109,38 +109,41 @@ router.post('/login', loginValidation, (0, errorHandler_1.asyncHandler)(async (r
             where: { email },
         });
         if (!user) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 error: {
                     message: 'Invalid email or password',
                     statusCode: 401,
                 },
             });
+            return;
         }
         const isPasswordValid = await bcryptjs_1.default.compare(password, user.passwordHash);
         if (!isPasswordValid) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 error: {
                     message: 'Invalid email or password',
                     statusCode: 401,
                 },
             });
+            return;
         }
         if (user.isSuspended) {
-            return res.status(403).json({
+            res.status(403).json({
                 success: false,
                 error: {
                     message: 'Account is suspended. Please contact support.',
                     statusCode: 403,
                 },
             });
+            return;
         }
         await prisma.user.update({
             where: { id: user.id },
             data: { lastLoginAt: new Date() },
         });
-        const token = generateToken(user.id);
+        const token = (0, jwt_1.generateToken)(user.id);
         res.cookie('token', token, {
             httpOnly: true,
             secure: config_1.config.NODE_ENV === 'production',
@@ -202,13 +205,14 @@ router.get('/me', auth_1.authenticateToken, (0, errorHandler_1.asyncHandler)(asy
             },
         });
         if (!user) {
-            return res.status(404).json({
+            res.status(404).json({
                 success: false,
                 error: {
                     message: 'User not found',
                     statusCode: 404,
                 },
             });
+            return;
         }
         res.json({
             success: true,

@@ -14,7 +14,7 @@ const businessValidation = [
 router.post('/', businessValidation, (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
             success: false,
             error: {
                 message: 'Validation errors',
@@ -22,6 +22,7 @@ router.post('/', businessValidation, (0, errorHandler_1.asyncHandler)(async (req
                 statusCode: 400,
             },
         });
+        return;
     }
     const { name, website, industry, country, description, } = req.body;
     try {
@@ -32,13 +33,14 @@ router.post('/', businessValidation, (0, errorHandler_1.asyncHandler)(async (req
             },
         });
         if (existingBusiness) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 error: {
                     message: 'Business with this name and industry already exists',
                     statusCode: 400,
                 },
             });
+            return;
         }
         const business = await prisma.client.create({
             data: {
@@ -113,13 +115,14 @@ router.get('/:id', (0, errorHandler_1.asyncHandler)(async (req, res) => {
             },
         });
         if (!business) {
-            return res.status(404).json({
+            res.status(404).json({
                 success: false,
                 error: {
                     message: 'Business not found',
                     statusCode: 404,
                 },
             });
+            return;
         }
         res.json({
             success: true,

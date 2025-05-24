@@ -3,16 +3,12 @@ import { body, validationResult } from 'express-validator';
 import { asyncHandler } from '../middleware/errorHandler';
 import { authenticateToken } from '../middleware/auth';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { config } from '../config';
+import { generateToken } from '../utils/jwt';
 
 const router = Router();
 const prisma = new PrismaClient();
-
-const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, config.JWT_SECRET);
-};
 
 // Input validation middleware
 const registerValidation = [
@@ -27,10 +23,10 @@ const loginValidation = [
 ];
 
 // Register endpoint - for agencies/freelancers
-router.post('/register', registerValidation, asyncHandler(async (req: Request, res: Response) => {
+router.post('/register', registerValidation, asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: {
         message: 'Validation errors',
@@ -38,6 +34,7 @@ router.post('/register', registerValidation, asyncHandler(async (req: Request, r
         statusCode: 400,
       },
     });
+    return;
   }
 
   const { 
@@ -57,13 +54,14 @@ router.post('/register', registerValidation, asyncHandler(async (req: Request, r
     });
 
     if (existingUser) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: {
           message: 'User with this email already exists',
           statusCode: 400,
         },
       });
+      return;
     }
 
     // Hash password
@@ -117,10 +115,10 @@ router.post('/register', registerValidation, asyncHandler(async (req: Request, r
 }));
 
 // Login endpoint
-router.post('/login', loginValidation, asyncHandler(async (req: Request, res: Response) => {
+router.post('/login', loginValidation, asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: {
         message: 'Validation errors',
@@ -128,6 +126,7 @@ router.post('/login', loginValidation, asyncHandler(async (req: Request, res: Re
         statusCode: 400,
       },
     });
+    return;
   }
 
   const { email, password } = req.body;
@@ -139,37 +138,40 @@ router.post('/login', loginValidation, asyncHandler(async (req: Request, res: Re
     });
 
     if (!user) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Invalid email or password',
           statusCode: 401,
         },
       });
+      return;
     }
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     
     if (!isPasswordValid) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Invalid email or password',
           statusCode: 401,
         },
       });
+      return;
     }
 
     // Check if user is suspended
     if (user.isSuspended) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: {
           message: 'Account is suspended. Please contact support.',
           statusCode: 403,
         },
       });
+      return;
     }
 
     // Update last login
@@ -213,7 +215,7 @@ router.post('/login', loginValidation, asyncHandler(async (req: Request, res: Re
 }));
 
 // Logout endpoint
-router.post('/logout', asyncHandler(async (req: Request, res: Response) => {
+router.post('/logout', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.clearCookie('token');
   res.clearCookie('refreshToken');
 
@@ -224,7 +226,7 @@ router.post('/logout', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Get current user endpoint
-router.get('/me', authenticateToken, asyncHandler(async (req: Request, res: Response) => {
+router.get('/me', authenticateToken, asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user?.id;
 
   try {
@@ -252,13 +254,14 @@ router.get('/me', authenticateToken, asyncHandler(async (req: Request, res: Resp
     });
 
     if (!user) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: {
           message: 'User not found',
           statusCode: 404,
         },
       });
+      return;
     }
     
     res.json({
@@ -280,7 +283,7 @@ router.get('/me', authenticateToken, asyncHandler(async (req: Request, res: Resp
 }));
 
 // Status endpoint for testing
-router.get('/status', asyncHandler(async (req: Request, res: Response) => {
+router.get('/status', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({
     success: true,
     message: 'Auth routes are working',

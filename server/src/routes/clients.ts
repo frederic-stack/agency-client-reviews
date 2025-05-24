@@ -14,10 +14,10 @@ const businessValidation = [
 ];
 
 // Create new business/client (for admin or agencies to add businesses they've worked with)
-router.post('/', businessValidation, asyncHandler(async (req: Request, res: Response) => {
+router.post('/', businessValidation, asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: {
         message: 'Validation errors',
@@ -25,6 +25,7 @@ router.post('/', businessValidation, asyncHandler(async (req: Request, res: Resp
         statusCode: 400,
       },
     });
+    return;
   }
 
   const {
@@ -45,13 +46,14 @@ router.post('/', businessValidation, asyncHandler(async (req: Request, res: Resp
     });
 
     if (existingBusiness) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: {
           message: 'Business with this name and industry already exists',
           statusCode: 400,
         },
       });
+      return;
     }
 
     // Create business
@@ -85,7 +87,7 @@ router.post('/', businessValidation, asyncHandler(async (req: Request, res: Resp
 }));
 
 // Get single business/client with reviews
-router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
+router.get('/:id', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
@@ -132,13 +134,14 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
     });
 
     if (!business) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: {
           message: 'Business not found',
           statusCode: 404,
         },
       });
+      return;
     }
 
     res.json({
@@ -160,7 +163,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Search businesses
-router.get('/', asyncHandler(async (req: Request, res: Response) => {
+router.get('/', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
   const search = req.query.search as string;
@@ -258,7 +261,7 @@ router.get('/', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Status endpoint
-router.get('/status', asyncHandler(async (req: Request, res: Response) => {
+router.get('/status', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({
     success: true,
     message: 'Client routes are working',

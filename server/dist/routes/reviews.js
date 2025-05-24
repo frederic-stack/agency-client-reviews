@@ -1,14 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const express_validator_1 = require("express-validator");
 const errorHandler_1 = require("../middleware/errorHandler");
 const client_1 = require("@prisma/client");
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const config_1 = require("../config");
+const jwt_1 = require("../utils/jwt");
 const router = (0, express_1.Router)();
 const prisma = new client_1.PrismaClient();
 const getAuthenticatedUser = async (req) => {
@@ -22,7 +18,7 @@ const getAuthenticatedUser = async (req) => {
         }
         if (!token)
             return null;
-        const decoded = jsonwebtoken_1.default.verify(token, config_1.config.JWT_SECRET);
+        const decoded = (0, jwt_1.verifyToken)(token);
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId, isActive: true, isSuspended: false },
         });
@@ -48,7 +44,7 @@ const reviewValidation = [
 router.post('/', reviewValidation, (0, errorHandler_1.asyncHandler)(async (req, res) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
+        res.status(400).json({
             success: false,
             error: {
                 message: 'Validation errors',
@@ -56,16 +52,18 @@ router.post('/', reviewValidation, (0, errorHandler_1.asyncHandler)(async (req, 
                 statusCode: 400,
             },
         });
+        return;
     }
     const user = await getAuthenticatedUser(req);
     if (!user) {
-        return res.status(401).json({
+        res.status(401).json({
             success: false,
             error: {
                 message: 'Authentication required to submit reviews',
                 statusCode: 401,
             },
         });
+        return;
     }
     const { clientId, title, content, projectType, budgetRange, overallRating, paymentRating, communicationRating, scopeRating, creativeFreedomRating, timelinessRating, projectStatus, } = req.body;
     try {
@@ -73,13 +71,14 @@ router.post('/', reviewValidation, (0, errorHandler_1.asyncHandler)(async (req, 
             where: { id: clientId },
         });
         if (!client) {
-            return res.status(404).json({
+            res.status(404).json({
                 success: false,
                 error: {
                     message: 'Business/Client not found',
                     statusCode: 404,
                 },
             });
+            return;
         }
         const review = await prisma.review.create({
             data: {
@@ -166,13 +165,14 @@ router.get('/client/:clientId', (0, errorHandler_1.asyncHandler)(async (req, res
             where: { id: clientId },
         });
         if (!client) {
-            return res.status(404).json({
+            res.status(404).json({
                 success: false,
                 error: {
                     message: 'Business/Client not found',
                     statusCode: 404,
                 },
             });
+            return;
         }
         const reviews = await prisma.review.findMany({
             where: {

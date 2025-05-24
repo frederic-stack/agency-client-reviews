@@ -2,8 +2,8 @@ import { Router, Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { asyncHandler } from '../middleware/errorHandler';
 import { PrismaClient } from '@prisma/client';
-import jwt from 'jsonwebtoken';
 import { config } from '../config';
+import { verifyToken } from '../utils/jwt';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -21,7 +21,7 @@ const getAuthenticatedUser = async (req: Request) => {
 
     if (!token) return null;
 
-    const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: string };
+    const decoded = verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId, isActive: true, isSuspended: false },
     });
@@ -48,10 +48,10 @@ const reviewValidation = [
 ];
 
 // Submit anonymous review
-router.post('/', reviewValidation, asyncHandler(async (req: Request, res: Response) => {
+router.post('/', reviewValidation, asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: {
         message: 'Validation errors',
@@ -59,17 +59,19 @@ router.post('/', reviewValidation, asyncHandler(async (req: Request, res: Respon
         statusCode: 400,
       },
     });
+    return;
   }
 
   const user = await getAuthenticatedUser(req);
   if (!user) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       error: {
         message: 'Authentication required to submit reviews',
         statusCode: 401,
       },
     });
+    return;
   }
 
   const {
@@ -94,13 +96,14 @@ router.post('/', reviewValidation, asyncHandler(async (req: Request, res: Respon
     });
 
     if (!client) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: {
           message: 'Business/Client not found',
           statusCode: 404,
         },
       });
+      return;
     }
 
     // Create review
@@ -184,7 +187,7 @@ router.post('/', reviewValidation, asyncHandler(async (req: Request, res: Respon
 }));
 
 // Get reviews for a specific business/client
-router.get('/client/:clientId', asyncHandler(async (req: Request, res: Response) => {
+router.get('/client/:clientId', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { clientId } = req.params;
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
@@ -197,13 +200,14 @@ router.get('/client/:clientId', asyncHandler(async (req: Request, res: Response)
     });
 
     if (!client) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: {
           message: 'Business/Client not found',
           statusCode: 404,
         },
       });
+      return;
     }
 
     // Get reviews
@@ -286,7 +290,7 @@ router.get('/client/:clientId', asyncHandler(async (req: Request, res: Response)
 }));
 
 // Get all clients/businesses (for search)
-router.get('/clients', asyncHandler(async (req: Request, res: Response) => {
+router.get('/clients', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
   const search = req.query.search as string;
@@ -360,7 +364,7 @@ router.get('/clients', asyncHandler(async (req: Request, res: Response) => {
 }));
 
 // Status endpoint
-router.get('/status', asyncHandler(async (req: Request, res: Response) => {
+router.get('/status', asyncHandler(async (req: Request, res: Response): Promise<void> => {
   res.json({
     success: true,
     message: 'Review routes are working',

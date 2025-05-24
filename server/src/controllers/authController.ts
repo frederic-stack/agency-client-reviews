@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { config } from '../config';
 import { asyncHandler } from '../middleware/errorHandler';
+import { generateToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 
 const prisma = new PrismaClient();
 
@@ -13,71 +14,28 @@ export enum UserRole {
   CLIENT = 'CLIENT'
 }
 
-// Generate JWT token
-const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, config.JWT_SECRET, {
-    expiresIn: config.JWT_EXPIRES_IN,
-  });
-};
-
-// Generate refresh token
-const generateRefreshToken = (userId: string): string => {
-  return jwt.sign({ userId }, config.JWT_REFRESH_SECRET, {
-    expiresIn: config.JWT_REFRESH_EXPIRES_IN,
-  });
-};
-
 // Register user
-export const register = asyncHandler(async (req: Request, res: Response) => {
+export const register = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const {
     email,
     password,
-    firstName,
-    lastName,
-    role,
-    // Agency specific fields
     companyName,
-    companyType,
+    websiteUrl,
     industry,
     country,
-    website,
-    linkedinProfile,
-    description
+    linkedinProfile
   } = req.body;
 
   // Validate required fields
-  if (!email || !password || !firstName || !lastName) {
-    return res.status(400).json({
+  if (!email || !password || !companyName || !industry || !country) {
+    res.status(400).json({
       success: false,
       error: {
-        message: 'Missing required fields: email, password, firstName, lastName',
+        message: 'Missing required fields: email, password, companyName, industry, country',
         statusCode: 400,
       },
     });
-  }
-
-  // Validate role
-  if (role && !Object.values(UserRole).includes(role)) {
-    return res.status(400).json({
-      success: false,
-      error: {
-        message: 'Invalid role. Must be AGENCY or CLIENT',
-        statusCode: 400,
-      },
-    });
-  }
-
-  // If role is AGENCY, require company information
-  if (role === UserRole.AGENCY) {
-    if (!companyName || !companyType || !industry || !country) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Agency registration requires: companyName, companyType, industry, country',
-          statusCode: 400,
-        },
-      });
-    }
+    return;
   }
 
   try {
@@ -87,54 +45,35 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: {
           message: 'User with this email already exists',
           statusCode: 400,
         },
       });
+      return;
     }
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, config.BCRYPT_ROUNDS);
 
-    // Create user with transaction to ensure atomicity
-    const result = await prisma.$transaction(async (tx) => {
-      // Create user
-      const user = await tx.user.create({
-        data: {
-          email: email.toLowerCase(),
-          passwordHash,
-          firstName,
-          lastName,
-          role: role || UserRole.CLIENT,
-        },
-      });
-
-      // Create agency if user is an agency
-      let agency = null;
-      if (role === UserRole.AGENCY) {
-        agency = await tx.agency.create({
-          data: {
-            name: companyName,
-            companyType,
-            industry,
-            country,
-            website: website || null,
-            linkedinProfile: linkedinProfile || null,
-            description: description || null,
-            ownerId: user.id,
-          },
-        });
-      }
-
-      return { user, agency };
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        email: email.toLowerCase(),
+        passwordHash,
+        companyName,
+        websiteUrl: websiteUrl || '',
+        industry,
+        country,
+        linkedinProfile: linkedinProfile || null,
+      },
     });
 
     // Generate tokens
-    const token = generateToken(result.user.id);
-    const refreshToken = generateRefreshToken(result.user.id);
+    const token = generateToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
 
     // Set HTTP-only cookie for token
     res.cookie('token', token, {
@@ -152,13 +91,12 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     });
 
     // Return user data (without password)
-    const { passwordHash: _, ...userWithoutPassword } = result.user;
+    const { passwordHash: _, ...userWithoutPassword } = user;
     
     res.status(201).json({
       success: true,
       data: {
         user: userWithoutPassword,
-        agency: result.agency,
         token,
       },
     });
@@ -175,72 +113,68 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // Login user
-export const login = asyncHandler(async (req: Request, res: Response) => {
+export const login = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: {
         message: 'Email and password are required',
         statusCode: 400,
       },
     });
+    return;
   }
 
   try {
-    // Find user with agency relation
+    // Find user
     const user = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
 
     if (!user) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Invalid email or password',
           statusCode: 401,
         },
       });
+      return;
     }
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     
     if (!isPasswordValid) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Invalid email or password',
           statusCode: 401,
         },
       });
+      return;
     }
 
     // Check if user is suspended
     if (user.isSuspended) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: {
           message: 'Account is suspended. Please contact support.',
           statusCode: 403,
         },
       });
+      return;
     }
 
-    // Update last login and get agency info
+    // Update last login
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
-
-    // Get agency info if user is an agency
-    let agency = null;
-    if (user.role === UserRole.AGENCY) {
-      agency = await prisma.agency.findUnique({
-        where: { ownerId: user.id },
-      });
-    }
 
     // Generate tokens
     const token = generateToken(user.id);
@@ -268,7 +202,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       success: true,
       data: {
         user: userWithoutPassword,
-        agency,
         token,
       },
     });
@@ -285,7 +218,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // Logout user
-export const logout = asyncHandler(async (req: Request, res: Response) => {
+export const logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   // Clear cookies
   res.clearCookie('token');
   res.clearCookie('refreshToken');
@@ -297,17 +230,18 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // Get current user
-export const getMe = asyncHandler(async (req: Request, res: Response) => {
+export const getMe = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const userId = (req as any).user?.id;
 
   if (!userId) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       error: {
         message: 'Not authenticated',
         statusCode: 401,
       },
     });
+    return;
   }
 
   try {
@@ -324,21 +258,14 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
     });
 
     if (!user) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: {
           message: 'User not found',
           statusCode: 404,
         },
       });
-    }
-
-    // Get agency info if user is an agency
-    let agency = null;
-    if (user.role === UserRole.AGENCY) {
-      agency = await prisma.agency.findUnique({
-        where: { ownerId: user.id },
-      });
+      return;
     }
 
     // Return user data (without password)
@@ -348,7 +275,6 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
       success: true,
       data: {
         user: userWithoutPassword,
-        agency,
       },
     });
   } catch (error) {
@@ -364,21 +290,22 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // Refresh token
-export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
+export const refreshToken = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { refreshToken: token } = req.cookies;
 
   if (!token) {
-    return res.status(401).json({
+    res.status(401).json({
       success: false,
       error: {
         message: 'Refresh token not provided',
         statusCode: 401,
       },
     });
+    return;
   }
 
   try {
-    const decoded = jwt.verify(token, config.JWT_REFRESH_SECRET) as { userId: string };
+    const decoded = verifyRefreshToken(token);
     
     // Generate new access token
     const newToken = generateToken(decoded.userId);

@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireRole = exports.optionalAuth = exports.authenticateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const client_1 = require("@prisma/client");
-const config_1 = require("../config");
+const jwt_1 = require("../utils/jwt");
 const prisma = new client_1.PrismaClient();
 const authenticateToken = async (req, res, next) => {
     try {
@@ -18,76 +18,83 @@ const authenticateToken = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
         }
         if (!token) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 error: {
                     message: 'Access token not provided',
                     statusCode: 401,
                 },
             });
+            return;
         }
-        const decoded = jsonwebtoken_1.default.verify(token, config_1.config.JWT_SECRET);
+        const decoded = (0, jwt_1.verifyToken)(token);
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
             select: {
                 id: true,
                 email: true,
+                companyName: true,
                 isActive: true,
                 isSuspended: true,
             },
         });
         if (!user) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 error: {
                     message: 'User not found',
                     statusCode: 401,
                 },
             });
+            return;
         }
         if (!user.isActive || user.isSuspended) {
-            return res.status(403).json({
+            res.status(403).json({
                 success: false,
                 error: {
                     message: 'Account is suspended or inactive',
                     statusCode: 403,
                 },
             });
+            return;
         }
         req.user = {
             id: user.id,
             email: user.email,
-            role: 'CLIENT',
+            companyName: user.companyName,
         };
         next();
     }
     catch (error) {
         if (error instanceof jsonwebtoken_1.default.TokenExpiredError) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 error: {
                     message: 'Token has expired',
                     statusCode: 401,
                 },
             });
+            return;
         }
         if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 error: {
                     message: 'Invalid token',
                     statusCode: 401,
                 },
             });
+            return;
         }
         console.error('Auth middleware error:', error);
-        return res.status(500).json({
+        res.status(500).json({
             success: false,
             error: {
                 message: 'Internal server error',
                 statusCode: 500,
             },
         });
+        return;
     }
 };
 exports.authenticateToken = authenticateToken;
@@ -101,14 +108,16 @@ const optionalAuth = async (req, res, next) => {
             token = req.headers.authorization.split(' ')[1];
         }
         if (!token) {
-            return next();
+            next();
+            return;
         }
-        const decoded = jsonwebtoken_1.default.verify(token, config_1.config.JWT_SECRET);
+        const decoded = (0, jwt_1.verifyToken)(token);
         const user = await prisma.user.findUnique({
             where: { id: decoded.userId },
             select: {
                 id: true,
                 email: true,
+                companyName: true,
                 isActive: true,
                 isSuspended: true,
             },
@@ -117,7 +126,7 @@ const optionalAuth = async (req, res, next) => {
             req.user = {
                 id: user.id,
                 email: user.email,
-                role: 'CLIENT',
+                companyName: user.companyName,
             };
         }
         next();
@@ -130,22 +139,14 @@ exports.optionalAuth = optionalAuth;
 const requireRole = (roles) => {
     return (req, res, next) => {
         if (!req.user) {
-            return res.status(401).json({
+            res.status(401).json({
                 success: false,
                 error: {
                     message: 'Authentication required',
                     statusCode: 401,
                 },
             });
-        }
-        if (!roles.includes(req.user.role)) {
-            return res.status(403).json({
-                success: false,
-                error: {
-                    message: 'Insufficient permissions',
-                    statusCode: 403,
-                },
-            });
+            return;
         }
         next();
     };

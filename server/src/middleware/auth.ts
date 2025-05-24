@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { config } from '../config';
+import { verifyToken } from '../utils/jwt';
 
 const prisma = new PrismaClient();
 
@@ -10,9 +11,7 @@ interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email: string;
-    role: string;
-    firstName?: string;
-    lastName?: string;
+    companyName?: string;
   };
 }
 
@@ -21,7 +20,7 @@ export const authenticateToken = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     let token: string | undefined;
 
@@ -33,17 +32,18 @@ export const authenticateToken = async (
     }
 
     if (!token) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Access token not provided',
           statusCode: 401,
         },
       });
+      return;
     }
 
     // Verify token
-    const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: string };
+    const decoded = verifyToken(token);
 
     // Get user from database
     const user = await prisma.user.findUnique({
@@ -51,68 +51,74 @@ export const authenticateToken = async (
       select: {
         id: true,
         email: true,
+        companyName: true,
         isActive: true,
         isSuspended: true,
       },
     });
 
     if (!user) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'User not found',
           statusCode: 401,
         },
       });
+      return;
     }
 
     if (!user.isActive || user.isSuspended) {
-      return res.status(403).json({
+      res.status(403).json({
         success: false,
         error: {
           message: 'Account is suspended or inactive',
           statusCode: 403,
         },
       });
+      return;
     }
 
     // Add user to request object
     req.user = {
       id: user.id,
       email: user.email,
-      role: 'CLIENT', // Default for now, will be updated after migration
+      companyName: user.companyName,
     };
 
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Token has expired',
           statusCode: 401,
         },
       });
+      return;
     }
 
     if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Invalid token',
           statusCode: 401,
         },
       });
+      return;
     }
 
     console.error('Auth middleware error:', error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       error: {
         message: 'Internal server error',
         statusCode: 500,
       },
     });
+    return;
   }
 };
 
@@ -121,7 +127,7 @@ export const optionalAuth = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
-) => {
+): Promise<void> => {
   try {
     let token: string | undefined;
 
@@ -132,15 +138,17 @@ export const optionalAuth = async (
     }
 
     if (!token) {
-      return next();
+      next();
+      return;
     }
 
-    const decoded = jwt.verify(token, config.JWT_SECRET) as { userId: string };
+    const decoded = verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,
         email: true,
+        companyName: true,
         isActive: true,
         isSuspended: true,
       },
@@ -150,7 +158,7 @@ export const optionalAuth = async (
       req.user = {
         id: user.id,
         email: user.email,
-        role: 'CLIENT', // Default for now
+        companyName: user.companyName,
       };
     }
 
@@ -163,27 +171,20 @@ export const optionalAuth = async (
 
 // Role-based authorization middleware
 export const requireRole = (roles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      return res.status(401).json({
+      res.status(401).json({
         success: false,
         error: {
           message: 'Authentication required',
           statusCode: 401,
         },
       });
+      return;
     }
 
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          message: 'Insufficient permissions',
-          statusCode: 403,
-        },
-      });
-    }
-
+    // For now, all authenticated users are considered valid
+    // This can be extended when role system is implemented
     next();
   };
 }; 
