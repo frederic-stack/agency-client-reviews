@@ -1,8 +1,14 @@
 [variables]
 NODE_ENV = "production"
 
+[phases.setup]
+nixPkgs = ["nodejs_18", "npm-9_x"]
+
 [phases.install]
-cmd = "npm ci --only=production"
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = ["npx prisma generate"]
 
 [start]
-cmd = "node index.js" 
+cmd = "node index-minimal.js" 
