@@ -6,15 +6,12 @@ import { EyeIcon, EyeSlashIcon, CheckIcon } from '@heroicons/react/24/outline';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
     companyName: '',
-    companyType: '',
     industry: '',
-    linkedinProfile: '',
+    country: '',
     website: '',
     agreeToTerms: false,
   });
@@ -25,29 +22,34 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [step, setStep] = useState(1);
 
-  const companyTypes = [
-    'Digital Agency',
-    'Marketing Agency',
-    'Design Agency', 
-    'Development Agency',
-    'Creative Agency',
-    'Consulting Firm',
-    'Freelancer',
-    'Production Company',
-    'PR Agency',
-    'Other'
-  ];
-
   const industries = [
     'Technology',
-    'Healthcare', 
-    'Finance',
+    'Marketing & Advertising', 
+    'Design & Creative',
+    'Development & Engineering',
+    'Consulting',
     'E-commerce',
+    'Healthcare',
+    'Finance',
     'Education',
     'Real Estate',
     'Manufacturing',
     'Non-profit',
     'Entertainment',
+    'Other'
+  ];
+
+  const countries = [
+    'United States',
+    'Canada',
+    'United Kingdom',
+    'Australia',
+    'Germany',
+    'France',
+    'Netherlands',
+    'Sweden',
+    'Denmark',
+    'Norway',
     'Other'
   ];
 
@@ -60,7 +62,7 @@ export default function RegisterPage() {
   };
 
   const validateStep1 = () => {
-    if (!formData.firstName || !formData.lastName || !formData.email) {
+    if (!formData.email || !formData.companyName) {
       setError('Please fill in all required fields');
       return false;
     }
@@ -88,8 +90,8 @@ export default function RegisterPage() {
   };
 
   const validateStep3 = () => {
-    if (!formData.companyName || !formData.companyType || !formData.industry) {
-      setError('Please fill in all company information');
+    if (!formData.industry || !formData.country) {
+      setError('Please fill in all required fields');
       return false;
     }
     if (!formData.agreeToTerms) {
@@ -118,20 +120,31 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      // TODO: Implement actual registration
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://backend-production-4cf6.up.railway.app'}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          companyName: formData.companyName,
+          industry: formData.industry,
+          country: formData.country,
+          website: formData.website,
+        }),
       });
 
-      if (response.ok) {
-        // Redirect to verification page or dashboard
-        window.location.href = '/verification-pending';
+      const data = await response.json();
+
+      if (data.success) {
+        // Store token
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        
+        // Redirect to dashboard
+        window.location.href = '/dashboard';
       } else {
-        const data = await response.json();
         setError(data.message || 'Registration failed. Please try again.');
       }
     } catch {
@@ -172,7 +185,7 @@ export default function RegisterPage() {
           Join ClientScore
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Create your account to start sharing and discovering client insights
+          Create your agency/freelancer account to start reviewing businesses
         </p>
         
         {/* Progress Indicator */}
@@ -207,42 +220,9 @@ export default function RegisterPage() {
               </div>
             )}
 
-            {/* Step 1: Personal Information */}
+            {/* Step 1: Basic Information */}
             {step === 1 && (
               <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                      First name *
-                    </label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      required
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="John"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                      Last name *
-                    </label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      required
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                      placeholder="Doe"
-                    />
-                  </div>
-                </div>
-
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                     Email address *
@@ -257,6 +237,22 @@ export default function RegisterPage() {
                     onChange={handleInputChange}
                     className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="john@agency.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
+                    Agency/Company name *
+                  </label>
+                  <input
+                    id="companyName"
+                    name="companyName"
+                    type="text"
+                    required
+                    value={formData.companyName}
+                    onChange={handleInputChange}
+                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="Your Agency Name"
                   />
                 </div>
 
@@ -357,43 +353,8 @@ export default function RegisterPage() {
             {step === 3 && (
               <>
                 <div>
-                  <label htmlFor="companyName" className="block text-sm font-medium text-gray-700">
-                    Company name *
-                  </label>
-                  <input
-                    id="companyName"
-                    name="companyName"
-                    type="text"
-                    required
-                    value={formData.companyName}
-                    onChange={handleInputChange}
-                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="Your Agency Name"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="companyType" className="block text-sm font-medium text-gray-700">
-                    Company type *
-                  </label>
-                  <select
-                    id="companyType"
-                    name="companyType"
-                    required
-                    value={formData.companyType}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  >
-                    <option value="">Select company type</option>
-                    {companyTypes.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
                   <label htmlFor="industry" className="block text-sm font-medium text-gray-700">
-                    Primary industry *
+                    Industry *
                   </label>
                   <select
                     id="industry"
@@ -403,7 +364,7 @@ export default function RegisterPage() {
                     onChange={handleInputChange}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                   >
-                    <option value="">Select primary industry</option>
+                    <option value="">Select your industry</option>
                     {industries.map((industry) => (
                       <option key={industry} value={industry}>{industry}</option>
                     ))}
@@ -411,24 +372,27 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="linkedinProfile" className="block text-sm font-medium text-gray-700">
-                    LinkedIn profile URL
+                  <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+                    Country *
                   </label>
-                  <input
-                    id="linkedinProfile"
-                    name="linkedinProfile"
-                    type="url"
-                    value={formData.linkedinProfile}
+                  <select
+                    id="country"
+                    name="country"
+                    required
+                    value={formData.country}
                     onChange={handleInputChange}
-                    className="mt-1 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    placeholder="https://linkedin.com/in/yourprofile"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">Helps with verification process</p>
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option value="">Select your country</option>
+                    {countries.map((country) => (
+                      <option key={country} value={country}>{country}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label htmlFor="website" className="block text-sm font-medium text-gray-700">
-                    Company website
+                    Website (optional)
                   </label>
                   <input
                     id="website"

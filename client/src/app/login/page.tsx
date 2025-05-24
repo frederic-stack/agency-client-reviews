@@ -17,8 +17,7 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // TODO: Implement actual authentication
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://backend-production-4cf6.up.railway.app'}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -26,11 +25,17 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        // Redirect to dashboard on success
+      const data = await response.json();
+
+      if (data.success) {
+        // Store token and user data
+        localStorage.setItem('token', data.data.token);
+        localStorage.setItem('user', JSON.stringify(data.data.user));
+        
+        // Redirect to dashboard
         window.location.href = '/dashboard';
       } else {
-        setError('Invalid email or password');
+        setError(data.message || 'Invalid email or password');
       }
     } catch {
       setError('Something went wrong. Please try again.');
