@@ -106,7 +106,8 @@ After deployment, verify:
 
 ### Build Errors:
 - ✅ **Root Directory**: Make sure `server` and `client` are set correctly
-- ✅ **Dockerfile**: Railway detects automatically (no railway.json needed)
+- ✅ **Nixpacks vs Docker**: If you get "nixpacks build fail", railway.toml files force Docker usage
+- ✅ **Dockerfile**: Railway should detect Dockerfiles with railway.toml configuration
 - ✅ **Dependencies**: Check build logs for missing packages
 
 ### Runtime Errors:
