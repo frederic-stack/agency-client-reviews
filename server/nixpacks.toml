@@ -1,0 +1,7 @@
+[build]
+# Disable Nixpacks - use Dockerfile instead
+cmd = ""
+
+[variables]
+# Force Railway to use Docker
+RAILWAY_USE_DOCKER = "true" 

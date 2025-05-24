@@ -14,6 +14,10 @@
 **Cause:** Railway configuration conflicts
 **Solution:** ✅ **FIXED** - Removed `railway.toml` files, let Railway auto-detect
 
+### ❌ Problem 4: "unable to generate a build plan for this app"
+**Cause:** Railway still defaulting to Nixpacks instead of Docker
+**Solution:** ✅ **FIXED** - Added explicit railway.toml and nixpacks.toml to force Docker usage
+
 ## 🎯 Current Deployment Strategy
 
 ### **Step 1: Backend Service**
@@ -66,13 +70,18 @@
 ## 🛠️ File Structure (Current)
 
 ```
+├── railway.toml ✅          # Forces Docker for entire project
 ├── server/
-│   ├── Dockerfile ✅        # Auto-detected by Railway
+│   ├── Dockerfile ✅        # Docker build instructions
+│   ├── railway.toml ✅      # Forces Docker build
+│   ├── nixpacks.toml ✅     # Disables Nixpacks
 │   ├── .dockerignore ✅     # Optimizes Docker build
 │   ├── .railwayignore ✅    # Optimizes Railway deployment
 │   └── ...
 ├── client/
-│   ├── Dockerfile ✅        # Auto-detected by Railway
+│   ├── Dockerfile ✅        # Docker build instructions
+│   ├── railway.toml ✅      # Forces Docker build
+│   ├── nixpacks.toml ✅     # Disables Nixpacks
 │   ├── .dockerignore ✅     # Optimizes Docker build
 │   ├── .railwayignore ✅    # Optimizes Railway deployment
 │   └── ...

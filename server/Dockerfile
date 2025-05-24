@@ -37,13 +37,12 @@ USER nodejs
 # Create logs directory
 RUN mkdir -p /app/logs
 
-# Expose port (Railway uses PORT env variable)
-EXPOSE $PORT
+# Expose port (Railway will assign PORT env variable)
 EXPOSE 5000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-5000}/api/health || exit 1
+    CMD curl -f http://localhost:5000/api/health || exit 1
 
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
