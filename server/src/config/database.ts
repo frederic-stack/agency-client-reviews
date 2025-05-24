@@ -20,30 +20,37 @@ class DatabaseService {
       console.warn('⚠️  Prisma client initialization failed:', error);
     }
 
-    try {
-      this._redis = new Redis(config.REDIS_URL, {
-        maxRetriesPerRequest: 1,
-        lazyConnect: true,
-        connectTimeout: 5000,
-      });
+    // Only initialize Redis if REDIS_URL is provided and not empty
+    if (config.REDIS_URL && config.REDIS_URL.trim() !== '' && config.REDIS_URL !== 'redis://localhost:6379') {
+      try {
+        this._redis = new Redis(config.REDIS_URL, {
+          maxRetriesPerRequest: 1,
+          lazyConnect: true,
+          connectTimeout: 5000,
+        });
 
-      // Handle Redis connection events
-      this._redis.on('connect', () => {
-        console.log('✅ Redis connected successfully');
-        this._redisConnected = true;
-      });
+        // Handle Redis connection events
+        this._redis.on('connect', () => {
+          console.log('✅ Redis connected successfully');
+          this._redisConnected = true;
+        });
 
-      this._redis.on('error', (error) => {
-        console.warn('⚠️  Redis connection error:', error.message);
-        this._redisConnected = false;
-      });
+        this._redis.on('error', (error) => {
+          console.warn('⚠️  Redis connection error:', error.message);
+          this._redisConnected = false;
+        });
 
-      this._redis.on('close', () => {
-        console.warn('⚠️  Redis connection closed');
-        this._redisConnected = false;
-      });
-    } catch (error) {
-      console.warn('⚠️  Redis client initialization failed:', error);
+        this._redis.on('close', () => {
+          console.warn('⚠️  Redis connection closed');
+          this._redisConnected = false;
+        });
+      } catch (error) {
+        console.warn('⚠️  Redis client initialization failed:', error);
+        this._redis = null;
+      }
+    } else {
+      console.log('ℹ️  Redis URL not provided or invalid, continuing without Redis...');
+      this._redis = null;
     }
   }
 
@@ -84,7 +91,7 @@ class DatabaseService {
       }
     }
     
-    // Try to connect to Redis
+    // Try to connect to Redis only if Redis client exists
     if (this._redis) {
       try {
         await this._redis.connect();
@@ -95,6 +102,8 @@ class DatabaseService {
         console.warn('⚠️  Continuing without Redis connection...');
         this._redisConnected = false;
       }
+    } else {
+      console.log('ℹ️  Continuing without Redis connection...');
     }
 
     if (!this._isConnected && !this._redisConnected) {
