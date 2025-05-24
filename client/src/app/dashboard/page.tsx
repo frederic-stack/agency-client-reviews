@@ -10,6 +10,8 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
 
+// ClientScore Dashboard - Agency/Freelancer Review Platform
+
 interface User {
   id: string;
   email: string;
